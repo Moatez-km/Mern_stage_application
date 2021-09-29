@@ -4,7 +4,7 @@ import {useSelector, useDispatch} from 'react-redux'
 import {Link} from 'react-router-dom'
 import{showErrMsg,showSuccessMsg} from '../../utils/notification/Notification'
 import {isLength,isMatch } from '../../utils/validation/validation'
-
+import {fetchAllUsers,dispatchGetAllUsers} from '../../../redux/actions/usersAction'
 const initialState={
     name:'',
     password:'',
@@ -16,14 +16,32 @@ const initialState={
 function Profile(){
     const auth=useSelector(state=>state.auth)
     const token=useSelector(state=>state.token)
+    const users=useSelector(state=>state.users)
 
 
     const {user, isAdmin} =auth
     const [data,setData]= useState(initialState)
-    const {name,email,password,cf_password,err,success}=data
+    const {name,password,cf_password,err,success}=data
     const[avatar,setAvatar]= useState(false)
     const[loading,setLoading]=useState(false)
     const[callback,setcallback]=useState(false)
+
+
+    
+    const dispatch = useDispatch()
+    useEffect(()=>{
+        if(isAdmin){
+            
+            return fetchAllUsers(token).then(res =>{
+                dispatch(dispatchGetAllUsers(res))
+            })
+            
+            }
+        
+    },[token,isAdmin,dispatch, callback])
+
+
+
     const handleChange = e=>{
         const{name,value}= e.target
         setData({...data,[name]:value,err:'',success:''})
@@ -47,7 +65,7 @@ function Profile(){
     if(!isMatch(password,cf_password))
         return setData({...data, err:"Password did not match", success:''})
     try{
-         axios.patch('/user/reset',{password},{
+         axios.post('/user/reset',{password},{
              name:name? name:user.name,
              avatar:avatar ? avatar:user.avatar
          },{
@@ -148,11 +166,30 @@ const handleUpdate=()=>{
                             </tr>
                         </thead>
                         <tbody>
-                        <td>ID</td>
-                                <td>Name</td>
-                                <td>Email</td>
-                                <td>Admin</td>
-                                <td>Action</td>
+                            {
+                                users.map(user =>(
+                                    <tr key={user._id}>
+                                        <td>{user._id}</td>
+                                        <td>{user.name}</td>
+                                        <td>{user.email}</td>
+                                        <td>{
+                                            user.role ===1
+                                            ?<i className="fas fa-check" title="Admin"></i>
+                                            :<i className="fas fa-times" title="user"></i>
+                                            
+                                                }</td>
+                                        <td>
+                                                <Link to={`/edit_user/${user._id}`}>
+                                                <i className="fas fa-edit" title="edit"></i>
+                                                </Link>
+                                                <i className="fas fa-trash-alt" title="delete"></i>
+
+                                        </td>
+
+                                    </tr>
+                                ))
+                            }
+                               
                         </tbody>
                     </table>
                 </div>
