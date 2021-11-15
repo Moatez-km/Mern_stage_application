@@ -109,6 +109,25 @@ const handleUpdate=()=>{
     if(name || avatar) updateInfor()
     if(password) updatePassword()
 }
+const handleDelete = async(id)=>{
+
+    try {
+        if(user._id !== id){
+        if(window.confirm("Are you sure you want to delete this account?")){
+            setLoading(true)
+            await axios.delete(`/user/delete/${id}`,{
+                headers:{Authorization:token}
+            })
+            setLoading(false)
+            setcallback(!callback)
+
+        }}
+        
+    } catch (err) {
+        setData({...data,err:err.response.data.msg,success:''})
+    }
+}
+
     return (
         
         <div>
@@ -182,7 +201,7 @@ const handleUpdate=()=>{
                                                 <Link to={`/edit_user/${user._id}`}>
                                                 <i className="fas fa-edit" title="edit"></i>
                                                 </Link>
-                                                <i className="fas fa-trash-alt" title="delete"></i>
+                                                <i className="fas fa-trash-alt" title="delete" onClick={()=> handleDelete(user._id)}></i>
 
                                         </td>
 
